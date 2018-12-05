@@ -1,0 +1,10 @@
+Architecture: iphoneos-arm
+Name: DEBackup
+Package: com.nvtechnology.debackup
+Version: 4000
+Author: HTTP410GONE <hysong0129@gmail.com>
+Maintainer: NVTechnology Korea <nvtechkr@gmail.com>
+Depends: firmware (>= 10.0), mobilesubstrate, gawk, com.nvtechnology.libuilder
+Description: Clone and Backup Restore your tweaks at once! This tool will extract all the installed tweaks to deb file and archive into a single file. You can restore whenever you want! Deb extraction tool credit: redeb by T.Herak
+Depiction: https://nvtechkorea.github.io/cydia/depictions/?p=com.nvtechnology.debackup
+Section: Tools
