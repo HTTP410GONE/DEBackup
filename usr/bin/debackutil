@@ -1,0 +1,162 @@
+#!/bin/bash
+# This script is created by HTTP410GONE.
+# Twitter: @hypertexterr410
+# Copyright (C) HTTP410GONE.
+touch /System/Library/deback_permission_test
+VER=$(</lib410/VersionStore/vers_debackup)
+if [ ! -e /System/Library/deback_permission_test ]; then
+    echo "DEBackup is not running as superuser permission. Unable to continue."
+    exit
+else
+    rm /System/Library/deback_permission_test
+fi
+echo "DEBACKUP POLICY UTILITY"
+echo "com.nvtechnology.debackup: "$VER
+PREFDIR="/lib410/Preferences/pref_debackup_option_"
+backupdeb=$(<$PREFDIR"debianBackup")
+backuppref=$(<$PREFDIR"prefBackup")
+backupmaster=$(<$PREFDIR"masterBackup")
+restoredeb=$(<$PREFDIR"debianRestore")
+restorepref=$(<$PREFDIR"prefRestore")
+restoremaster=$(<$PREFDIR"masterRestore")
+clearlib=$(<$PREFDIR"clearLib")
+clearstorage=$(<$PREFDIR"clearStorage")
+unpack=$(<$PREFDIR"unpack")
+deletebackup=$(<$PREFDIR"deleteBackup")
+if [ $1 == "-help" ]; then
+    echo "debackuitl -[option] -[enable/disable]"
+    echo "Options:"
+    echo "-1: Deb backup"
+    echo "-2: Pref backup"
+    echo "-3: Master backup"
+    echo "-4: Deb restore"
+    echo "-5: Pref restore"
+    echo "-6: Master restore"
+    echo "-7: Clear library"
+    echo "-8: Clear temporary storage"
+    echo "-9: Unpack backup"
+    echo "-10: Delete backup"
+elif [ $1 == "-1" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"debianBackup"
+        echo "enable" > $PREFDIR"debianBackup"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"debianBackup"
+        echo "disable" > $PREFDIR"debianBackup"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-2" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"prefBackup"
+        echo "enable" > $PREFDIR"prefBackup"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"prefBackup"
+        echo "disable" > $PREFDIR"prefBackup"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-3" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"masterBackup"
+        echo "enable" > $PREFDIR"masterBackup"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"masterBackup"
+        echo "disable" > $PREFDIR"masterBackup"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-4" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"debianRestore"
+        echo "enable" > $PREFDIR"debianRestore"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"debianRestore"
+        echo "disable" > $PREFDIR"debianRestore"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-5" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"prefRestore"
+        echo "enable" > $PREFDIR"prefRestore"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"prefRestore"
+        echo "disable" > $PREFDIR"prefRestore"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-6" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"masterRestore"
+        echo "enable" > $PREFDIR"masterRestore"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"masterRestore"
+        echo "disable" > $PREFDIR"masterRestore"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-7" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"clearLib"
+        echo "enable" > $PREFDIR"clearLib"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"clearLib"
+        echo "disable" > $PREFDIR"clearLib"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-8" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"clearStorage"
+        echo "enable" > $PREFDIR"clearStorage"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"clearStorage"
+        echo "disable" > $PREFDIR"clearStorage"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-9" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"unpack"
+        echo "enable" > $PREFDIR"unpack"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"unpack"
+        echo "disable" > $PREFDIR"unpack"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "-10" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"deleteBackup"
+        echo "enable" > $PREFDIR"deleteBackup"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"deleteBackup"
+        echo "disable" > $PREFDIR"deleteBackup"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+else
+    echo "No such option."
+fi
+exit

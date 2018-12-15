@@ -1,0 +1,33 @@
+#!/bin/sh
+# DEBackup Tool script
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to backup tweak preferences."
+echo "It may take very long, and it depends"
+echo "the number of preference files and the "
+echo "speed of your device."
+echo "======================================"
+echo "What will the backup name be?"
+read backupname
+echo "PROCESS: backupPrefOnly-copyPrefFile / BACKUP_NAME: "$backupname > $INPROGRESS
+$BINDIR"cleanup"
+mkdir $TEMP/preferences
+echo "1/3: Copying preference files..."
+cp -r /private/var/mobile/Library/Preferences $TEMP/preferences
+echo "PROCESS: backupPrefOnly-filterApplePreferenceFiles / BACKUP_NAME: "$backupname > $INPROGRESS
+echo "2/3: Filtering..."
+cd $TEMP/preferences
+if [ -e com.apple.* ]; then
+	rm com.apple.*
+fi
+echo "PROCESS: backupPrefOnly-compress / BACKUP_NAME: "$backupname > $INPROGRESS
+cd $TEMP
+echo "3/3: Archiving..."
+zip -rqq BACKUP_$backupname.zip preferences
+mv BACKUP_$backupname.zip $PERMASTORE/BACKUP_$backupname.pbk
+$BINDIR"cleanup"
+echo "Done."

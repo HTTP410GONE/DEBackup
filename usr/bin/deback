@@ -7,15 +7,15 @@ function trap_forceExit ()
 {
     echo "Force quit signal detected."
     echo "Cleaning up..."
-    if [ -e $INPROGRESS ]; then
-        rm $INPROGRESS
+    if [ -e $ProgressFile ]; then
+        rm $ProgressFile
     fi
     exit 
 }
 trap "trap_forceExit" 2
 clear
 DEBUG="Release "
-VER=$(</private/var/mobile/lib410/VersionStore/vers_debackup)
+VER=$(</lib410/VersionStore/vers_debackup)
 echo " _   _  _                "               
 echo "| \ |_ |_)  _.  _ |      ._   "
 echo "|_/ |_ |_) (_| (_ |< |_| |_)  "
@@ -51,408 +51,175 @@ elif [ ! -e /private/var/mobile/Documents/debackup.lib/Permanent ]; then
     mkdir /private/var/mobile/Documents/debackup.lib/Permanent
     echo "Done."
 fi
-MASTERPATH="/private/var/mobile/Documents/debackup.lib"
-PERMASTORE="/private/var/mobile/Documents/debackup.lib/Permanent"
-TEMP="/private/var/mobile/Documents/debackup.lib/temp"
-INPROGRESS="/private/var/mobile/Documents/debackup.lib/inProgress"
+BINDIR="/lib410/Resources/debackup/"
+PREFDIR="/lib410/Preferences/pref_debackup_option_"
+ProgressFile="/private/var/mobile/Documents/debackup.lib/inProgress"
 echo "Checking for any crash..."
-if [ -e $INPROGRESS ]; then
-    RECORD=$(<$INPROGRESS)
+if [ -e $ProgressFile ]; then
+    RECORD=$(<$ProgressFile)
     echo "CRASH RECORD FOUND."
     echo "DATA: "
     echo $RECORD
-    rm $INPROGRESS
+    rm $ProgressFile
     echo "Crash data erased. Just in case, please restart the tool."
     echo "======================================"
     exit
 else
     echo "No crash record from last process."
 fi
+echo "Loading policies..."
+backupdeb=$(<$PREFDIR"debianBackup")
+backuppref=$(<$PREFDIR"prefBackup")
+backupmaster=$(<$PREFDIR"masterBackup")
+restoredeb=$(<$PREFDIR"debianRestore")
+restorepref=$(<$PREFDIR"prefRestore")
+restoremaster=$(<$PREFDIR"masterRestore")
+clearlib=$(<$PREFDIR"clearLib")
+clearstorage=$(<$PREFDIR"clearStorage")
+unpack=$(<$PREFDIR"unpack")
+deletebackup=$(<$PREFDIR"deleteBackup")
+echo "Done."
 echo "======================================"
 echo "Press ctrl+c at anytime you want to cancel the process."
 echo "======================================"
 echo "How can I help you?"
+echo "*: Disabled"
 echo ""
-echo "1. Backup all debs"
-echo "2. Backup preferences (Not include Apple Pref)"
-echo "3. Restore preferences"
-echo "4. Clean Temporary Storage"
-echo "5. Restore deb backup"
-echo "6. Unpack backup"
-echo "7. Delete old backups"
-echo "8. Clean DEBackup Library - Erase backups"
-echo "9. Backup debs and preferences (Not include Apple Pref)"
-echo "10. Restore full backup"
+if [ $backupdeb == "enable" ]; then
+    echo "1. Backup all debs"
+else
+    echo "*1. Backup all debs"
+fi
+if [ $backuppref == "enable" ]; then
+    echo "2. Backup preferences (Not include Apple Pref)"
+else
+    echo "2*. Backup preferences (Not include Apple Pref)"
+fi
+if [ $restorepref == "enable" ]; then
+    echo "3. Restore preferences"
+else
+    echo "3*. Restore preferences"
+fi
+if [ $clearstorage == "enable" ]; then
+    echo "4. Clean Temporary Storage"
+else
+    echo "4*. Clean Temporary Storage"
+fi
+if [ $restoredeb == "enable" ]; then
+    echo "5. Restore deb backup"
+else
+    echo "5*. Restore deb backup"
+fi
+if [ $unpack == "enable" ]; then
+    echo "6. Unpack backup"
+else
+    echo "6*. Unpack backup"
+fi
+if [ $deletebackup == "enable" ]; then
+    echo "7. Delete old backups"
+else
+    echo "7*. Delete old backups"
+fi
+if [ $clearlib == "enable" ]; then
+    echo "8. Clean DEBackup Library - Erase backups"
+else
+    echo "8*. Clean DEBackup Library - Erase backups"
+fi
+if [ $backupmaster == "enable" ]; then
+    echo "9. Backup debs and preferences (Not include Apple Pref)"
+else
+    echo "9*. Backup debs and preferences (Not include Apple Pref)"
+fi
+if [ $restoremaster == "enable" ]; then 
+    echo "10. Restore full backup"
+else
+    echo "10*. Restore full backup"
+fi
 echo "11. Quit"
 echo "12. Credit"
 echo ""
 echo "Type in the valid option number."
 read optionNum
 if [ $optionNum == "1" ]; then
-    echo "======================================"
-    echo "You are trying to backup all the debs."
-    echo "It may take very long, and it depends"
-    echo "the number of debs installed and the "
-    echo "speed of your device."
-    echo "======================================"
-    echo "What will the backup name be?"
-    read backupname
-    echo "PROCESS: backupDebsOnly-getlist / BACKUP_NAME: "$backupname > $INPROGRESS
-    echo "1/5: Accessing dpkg to get the list..."
-    total=$(dpkg --get-selections | awk '{print $1}'|grep -v gsc|grep -v "^cy+" | wc -l)
-    echo "     Found " $total " debs to backup."
-    echo "2/5: Extract to DEB"
-    echo "PROCESS: backupDebsOnly-extraction / BACKUP_NAME: "$backupname > $INPROGRESS
-    
-    declare -i division_part1=total/3
-    declare -i division_part2=total/3*2
-    echo "Extraction: 0/3"
-    for ((i=0; i<total; i++)) do
-        ( echo y
-        echo $i
-         ) | /usr/bin/debackup-extractionTool >&- 2>&-
-        if [ i==division_part1 ]; then
-            echo "Extraction: 1/3"
-        elif [ i== division_part2 ]; then
-            echo "Extraction: 2/3"
-        fi
-    done
-    echo "Extraction: 3/3"
-
-    #for ((i=0; i<total; i++)) do
-    #    ( echo y
-    #    echo $i
-    #     ) | /usr/bin/debackup-extractionTool >&- 2>&-
-    #    echo "Progress: "$i"/"$total
-    #done
-    #echo "Progress: "$total"/"$total
-    cd $TEMP
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Backed up list:"
-        ls
+    if [ $backupdeb == "enable" ]; then
+        $BINDIR"backupdeb"
+    elif [ $backupdeb == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
     fi
-    echo "3/5: Removing Stock Packages from backup..."
-    echo "PROCESS: backupDebsOnly-eraseStockPackages / BACKUP_NAME: "$backupname > $INPROGRESS
-    if [ $DEBUG == "DEBUG_" ]; then
-    	echo "Currently Working:" $(pwd)
-        echo "  Erase list: com.ex.substitute, apt7, apt7-key, apt7-lib, base, bash, bzip2, coreutils, coreutils-lib, cydia, {All saurik packages}"
-    fi
-    rm com.ex.substitute*
-    rm apt7*
-    rm base*
-    rm bash*
-    rm bzip2*
-    rm coreutils*
-    rm cydia*
-    rm com.saurik*
-    cd $MASTERPATH
-    echo "4/5: Archiving..."
-    echo "PROCESS: backupDebsOnly-archive / BACKUP_NAME: "$backupname > $INPROGRESS
-    sleep 2
-    if [ $DEBUG == "DEBUG_" ]; then
-    	echo "Currently Working:" $(pwd)
-    fi
-    zip -rqq BACKUP_$backupname.zip temp
-    mv BACKUP_$backupname.zip $PERMASTORE/BACKUP_$backupname.dbk
-    echo "5/5: Cleaning up..."
-    echo "PROCESS: backupDebsOnly-cleanup / BACKUP_NAME: "$backupname > $INPROGRESS
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Files were not cleaned up because the snapshot is debug version."
-    elif [ $DEBUG == "Release " ]; then
-        rm -r $TEMP
-        mkdir $TEMP
-    fi
-    echo "Done."
 elif [ $optionNum == "2" ]; then
-    echo "======================================"
-    echo "You are trying to backup tweak preferences."
-    echo "It may take very long, and it depends"
-    echo "the number of preference files and the "
-    echo "speed of your device."
-    echo "======================================"
-    echo "What will the backup name be?"
-    read backupname
-    echo "PROCESS: backupPrefOnly-copyPrefFile / BACKUP_NAME: "$backupname > $INPROGRESS
-    rm -r $TEMP
-    mkdir $TEMP
-    echo "1/3: Copying preference files..."
-    cp -r /private/var/mobile/Library/Preferences $TEMP
-    echo "PROCESS: backupPrefOnly-filterApplePreferenceFiles / BACKUP_NAME: "$backupname > $INPROGRESS
-    echo "2/3: Filtering..."
-    rm com.apple.*
-    echo "PROCESS: backupPrefOnly-compress / BACKUP_NAME: "$backupname > $INPROGRESS
-    cd $TEMP
-    cd ..
-    echo "3/3: Archiving..."
-    zip -rqq BACKUP_$backupname.zip Temporary
-    mv BACKUP_$backupname.zip $PERMASTORE/BACKUP_$backupname.pbk
-    rm -r $TEMP
-    mkdir $TEMP
-    echo "Done."
+    if [ $backuppref == "enable" ]; then
+        $BINDIR"backuppref"
+    elif [ $backuppref == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
+    fi
 elif [ $optionNum == "3" ]; then
-    echo "======================================"
-    echo "You are trying to restore preferences."
-    echo "It may take very long, and it depends"
-    echo "the number of preference files and the "
-    echo "speed of your device."
-    echo "======================================"
-    echo "PROCESS: restorePref-temporary"> $INPROGRESS
-    echo "What backup do you want to restore? (Type the backup name only.)"
-    cd $PERMASTORE
-    ls *.pbk
-    read backupSelection
-    echo "PROCESS: restorePref-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cp "BACKUP_"$backupSelection".pbk" $TEMP
-    mv $TEMP/"BACKUP_"$backupSelection".pbk" $TEMP/backup.zip
-    echo "1/3: Unpacking backup..."
-    echo "PROCESS: restorPrefe-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    sleep 2
-    cd $TEMP
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Currently Working:" $(pwd)
+    if [ $restorepref == "enable" ]; then
+        $BINDIR"restorepref"
+    elif [ $restorepref == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
     fi
-    unzip -qq backup.zip
-    cd $TEMP
-    echo "2/3: Copying contents..."
-    echo "PROCESS: restorePref-copyFiles / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cp * /private/var/mobile/Library/Preferences
-    echo "3/3: Cleaning up..."
-    echo "PROCESS: restorePref-copyFiles / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    rm -r $TEMP
-    mkdir $TEMP
 elif [ $optionNum == "4" ]; then
-    echo "PROCESS: clean-temporary"> $INPROGRESS
-    rm -r $TEMP
-    mkdir $TEMP
-    echo "Done."
+    if [ $clearstorage == "enable" ]; then
+        $BINDIR"cleanup"
+    elif [ $clearstorage == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
+    fi
 elif [ $optionNum == "5" ]; then
-    echo "======================================"
-    echo "You are trying to restore from a backup."
-    echo "It may take very long, and it depends"
-    echo "the contents of the backup and the"
-    echo "speed of your device."
-    echo "======================================"
-    echo "What backup do you want to restore? (Type the backup name only.)"
-    cd $PERMASTORE
-    ls *.dbk
-    read backupSelection
-    echo "PROCESS: restoreDebOnly-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cp "BACKUP_"$backupSelection".dbk" $TEMP
-    mv $TEMP/"BACKUP_"$backupSelection".dbk" $TEMP/backup.zip
-    echo "1/4: Unpacking backup..."
-    echo "PROCESS: restoreDebOnly-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    sleep 2
-    cd $TEMP
-    if [ $DEBUG == "DEBUG_" ]; then
-    	echo "Currently Working:" $(pwd)
+    if [ $restoredeb == "enable" ]; then
+        $BINDIR"restoredeb"
+    elif [ $restoredeb == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
     fi
-    unzip -qq backup.zip
-    cd $TEMP
-    echo "2/4: Starting installation using DPKG..."
-    echo "PROCESS: restoreDebOnly-installUsingDPKG / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    sleep 1
-    dpkg -i *.deb >&- 2>&-
-    echo "3/4: Cleaning up..."
-    echo "PROCESS: restoreDebOnly-cleanup / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    rm -r $TEMP
-    mkdir $TEMP
-    echo "4/4: Running uicache..."
-    echo "PROCESS: restoreDebOnly-runUicache / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    uicache
-    echo "Done."
-    echo "SpringBoard will restart in 5 seconds."
-    echo "PROCESS: restoreDebOnly-respringtimeout / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    sleep 5
-    killall SpringBoard
 elif [ $optionNum == "6" ]; then
-    echo "======================================"
-    echo "You are trying to unpack a backup."
-    echo "It may take very long, and it depends"
-    echo "the number of debs backed up and the "
-    echo "speed of your device."
-    echo "======================================"
-    echo "What backup do you want to unpack?"
-    cd $PERMASTORE
-    ls
-    read backupSelection
-    echo "1/2: Copying backup..."
-    echo "PROCESS: unpack-copy / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cp $backupSelection $TEMP
-    mv $TEMP/$backupSelection $TEMP/backup.zip
-    echo "2/2: Unpacking backup..."
-    echo "PROCESS: unpack-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cd $TEMP
-    unzip -qq backup.zip
-    echo "Debs are unpacked at: " $PKGLOC
+    if [ $unpack == "enable" ]; then
+        $BINDIR"unpack"
+    elif [ $unpack == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
+    fi
 elif [ $optionNum == "7" ]; then
-    echo "======================================"
-    echo "You are trying to delete a backup."
-    echo "!!!YOU CANNOT UNDO THIS ACTION!!!"
-    echo "Please be careful deleting a backup."
-    echo "======================================"
-    echo "What backup do you want to delete?"
-    cd $PERMASTORE
-    ls
-    read backupSelection
-    echo "======================================"
-    echo "ARE YOU SURE YOU WANT TO DELETE THE BACKUP?:"
-    echo $backupSelection
-    echo "Please type YES (all capital) to continue."
-    echo "======================================"
-    echo "PROCESS: deleteBackup-confirm / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    read confirm
-    if [ $confirm == "YES" ]; then
-        echo "1/1: Deleting..."
-        echo "PROCESS: deleteBackup-delete / BACKUP_NAME: "$backupSelection > $INPROGRESS
-        rm $backupSelection
+    if [ $deletebackup == "enable" ]; then
+        $BINDIR"delbackup"
+    elif [ $deletebackup == "disable-wip" ]; then
+        echo "Option is working in progress."
     else
-        echo "Aborted."
+        echo "Option is currently disabled."
     fi
-    echo "Done."
-elif [ $optionNum == "8" ]; then   
-    echo "======================================"
-    echo "You are trying to delete the master library."
-    echo "THIS WILL ERASE YOUR LOCAL BACKUPS."
-    echo "YOU CANNOT UNDO THIS ACTION."
-    echo "Please type YES (all capital) to continue."
-    echo "======================================"
-    read confirm
-    if [ $confirm == "YES" ]; then
-        echo "1/1: Cleaning up library."
-        echo "PROCESS: deletelib-delete" > $INPROGRESS
-        rm -r $MASTERPATH
-        echo "Done."
+elif [ $optionNum == "8" ]; then  
+    if [ $clearlib == "enable" ]; then
+        $BINDIR"cleanlib"
+    elif [ $clearlib == "disable-wip" ]; then
+        echo "Option is working in progress."
     else
-        echo "Aborted."
-    fi
-elif [ $optionNum == "9" ]; then   
-    echo "======================================"
-    echo "You are trying to backup all the debs"
-    echo "and preference files."
-    echo "It may take very long, and it depends"
-    echo "the number of debs installed and the "
-    echo "speed of your device."
-    echo "======================================"
-    echo "What will the backup name be?"
-    read backupname
-    echo "PROCESS: backupFull-getlist / BACKUP_NAME: "$backupname > $INPROGRESS
-    echo "1/9: Accessing dpkg to get the list..."
-    total=$(dpkg --get-selections | awk '{print $1}'|grep -v gsc|grep -v "^cy+" | wc -l)
-    echo "     Found " $total " debs to backup."
-    echo "2/9: Extract to DEB"
-    echo "PROCESS: backupFull-extraction / BACKUP_NAME: "$backupname > $INPROGRESS
-    declare -i division_part1=total/3
-    declare -i division_part2=total/3*2
-    echo "Extraction: 0/3"
-    for ((i=0; i<total; i++)) do
-        ( echo y
-        echo $i
-         ) | /usr/bin/debackup-extractionTool >&- 2>&-
-        if [ i==division_part1 ]; then
-            echo "Extraction: 1/3"
-        elif [ i== division_part2 ]; then
-            echo "Extraction: 2/3"
-        fi
-    done
-    echo "Extraction: 3/3"
-    cd $TEMP
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Backed up list:"
-        ls
-    fi
-    echo "3/9: Removing Stock Packages from backup..."
-    echo "PROCESS: backupFull-eraseStockPackages / BACKUP_NAME: "$backupname > $INPROGRESS
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Currently Working:" $(pwd)
-        echo "  Erase list: com.ex.substitute, apt7, apt7-key, apt7-lib, base, bash, bzip2, coreutils, coreutils-lib, cydia, {All saurik packages}"
-    fi
-    cd temp
-    rm com.ex.substitute*
-    rm apt7*
-    rm base*
-    rm bash*
-    rm bzip2*
-    rm coreutils*
-    rm cydia*
-    rm com.saurik*
-    cd $MASTERPATH
-    echo "4/9: Archiving..."
-    echo "PROCESS: backupFull-archive / BACKUP_NAME: "$backupname > $INPROGRESS
-    sleep 2
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Currently Working:" $(pwd)
-    fi
-    zip -rqq $backupname_debs.zip temp
-    echo "5/9: Copying preference files..."
-    echo "PROCESS: backupFull-copyPrefFile / BACKUP_NAME: "$backupname > $INPROGRESS
-    mkdir $TEMP/preferences
-    cp -r /private/var/mobile/Library/Preferences $TEMP/preferences
-    echo "6/9: Filtering Apple preferences..."
-    echo "PROCESS: backupFull-filterApplePreferenceFiles / BACKUP_NAME: "$backupname > $INPROGRESS
-    cd preferences
-    rm com.apple.*
-    echo "7/9: Archiving..."
-    echo "PROCESS: backupFull-compress / BACKUP_NAME: "$backupname > $INPROGRESS
-    cd $TEMP
-    zip -rqq $backupname_prefs.zip preferences
-    echo "8/9: Binding..."
-    echo "PROCESS: backupFull-bind / BACKUP_NAME: "$backupname > $INPROGRESS
-    mkdir Contents
-    mv $backupname"_debs.dbk" "Contents/"$backupname"_debs.dbk"
-    mv $backupname"_prefs.zip" "Contents/"$backupname"_prefs.pbk"
-    zip -rqq BACKUP_$backupname.zip Contents
-    mv BACKUP_$backupname.zip BACKUP_$backupname.mbk
-    mv BACKUP_$backupname.mbk $PERMASTORE/BACKUP_$backupname.mbk
-    echo "9/9: Cleaing up..."
-    echo "PROCESS: backupFull-cleanup / BACKUP_NAME: "$backupname > $INPROGRESS
-    echo "Done."
-elif [ $optionNum == "10" ]; then   
-    echo "======================================"
-    echo "You are trying to restore from a backup."
-    echo "It may take very long, and it depends"
-    echo "the contents of the backup and the"
-    echo "speed of your device."
-    echo "======================================"
-    echo "What backup do you want to restore? (Type the backup name only.)"
-    cd $PERMASTORE
-    ls *.mbk
-    read backupSelection
-    echo "1/9: Copying files to temporary directory..."
-    echo "PROCESS: restoreMasterBackup-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    cp "BACKUP_"$backupSelection".mbk" $TEMP
-    mv $TEMP/"BACKUP_"$backupSelection".mbk" $TEMP/backup.zip
-    echo "2/9: Unpacking backup..."
-    echo "PROCESS: restoreMasterBackup-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
-    sleep 2
-    cd $TEMP
-    if [ $DEBUG == "DEBUG_" ]; then
-        echo "Currently Working:" $(pwd)
-    fi
-    unzip -qq backup.zip
-    cd $TEMP
-    cd Contents
-    mv *.dbk debian.zip
-    mv *.pbk pref.zip
-    echo "3/9: Unpacking preferences..."
-    unzip -qq pref.zip
-    echo "4/9: Overwriting preferece files..."
-    cd prefereces
-    cp * /private/var/mobile/Library/Preferences
-    echo "5/9: Cleaning up preference files..."
-    cd ..
-    rm -r preferences
-    echo "6/9: Unpacking Deb backups..."
-    unzip -qq debian.zip
-    cd temp
-    echo "7/9: Installing packages with DPKG..."
-    dpkg -i *.deb >&- 2>&-
-    echo "8/9: Cleaning up deb files..."
-    cd ..
-    rm -r temp
-    echo "9/9: Cleaning up temporary space..."
-    cd $MASTERPATH
-    rm -r $TEMP
-    mkdir $TEMP
+        echo "Option is currently disabled."
+    fi 
+elif [ $optionNum == "9" ]; then
+    if [ $backupmaster == "enable" ]; then
+        $BINDIR"backupall"
+    elif [ $backupmaster == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
+    fi   
+elif [ $optionNum == "10" ]; then 
+    if [ $restoremaster == "enable" ]; then
+        $BINDIR"restoreall"
+    elif [ $restoremaster == "disable-wip" ]; then
+        echo "Option is working in progress."
+    else
+        echo "Option is currently disabled."
+    fi  
 elif [ $optionNum == "11" ]; then   
     echo "Bye!"
 elif [ $optionNum == "12" ]; then
@@ -462,6 +229,6 @@ elif [ $optionNum == "12" ]; then
 else
     echo "No valid option. Exiting..."
 fi
-if [ -e $INPROGRESS ]; then
-    rm $INPROGRESS
+if [ -e $ProgressFile ]; then
+    rm $ProgressFile
 fi

@@ -1,0 +1,22 @@
+#!/bin/sh
+# DEBackup Tool script
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+ echo "======================================"
+echo "You are trying to delete the master library."
+echo "THIS WILL ERASE YOUR LOCAL BACKUPS."
+echo "YOU CANNOT UNDO THIS ACTION."
+echo "Please type YES (all capital) to continue."
+echo "======================================"
+read confirm
+if [ $confirm == "YES" ]; then
+	echo "1/1: Cleaning up library."
+	echo "PROCESS: deletelib-delete" > $INPROGRESS
+	rm -r $MASTERPATH
+	echo "Done."
+else
+	echo "Aborted."
+fi

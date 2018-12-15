@@ -1,0 +1,38 @@
+#!/bin/sh
+# DEBackup Tool script
+DEBUG="Release "
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to restore preferences."
+echo "It may take very long, and it depends"
+echo "the number of preference files and the "
+echo "speed of your device."
+echo "======================================"
+echo "PROCESS: restorePref-temporary"> $INPROGRESS
+echo "What backup do you want to restore? (Type the backup name only.)"
+cd $PERMASTORE
+ls *.pbk
+read backupSelection
+echo "PROCESS: restorePref-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cp "BACKUP_"$backupSelection".pbk" $TEMP
+mv $TEMP/"BACKUP_"$backupSelection".pbk" $TEMP/backup.zip
+echo "1/3: Unpacking backup..."
+echo "PROCESS: restorPrefe-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
+sleep 2
+cd $TEMP
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Currently Working:" $(pwd)
+fi
+unzip -qq backup.zip
+cd $TEMP
+cd preferences/Preferences
+echo "2/3: Copying contents..."
+echo "PROCESS: restorePref-copyFiles / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cp -r * /private/var/mobile/Library/Preferences
+echo "3/3: Cleaning up..."
+echo "PROCESS: restorePref-copyFiles / BACKUP_NAME: "$backupSelection > $INPROGRESS
+$BINDIR"cleanup"

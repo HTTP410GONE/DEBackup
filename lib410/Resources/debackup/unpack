@@ -1,0 +1,26 @@
+#!/bin/sh
+# DEBackup Tool script
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to unpack a backup."
+echo "It may take very long, and it depends"
+echo "the number of debs backed up and the "
+echo "speed of your device."
+echo "======================================"
+echo "What backup do you want to unpack?"
+cd $PERMASTORE
+ls
+read backupSelection
+echo "1/2: Copying backup..."
+echo "PROCESS: unpack-copy / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cp $backupSelection $TEMP
+mv $TEMP/$backupSelection $TEMP/backup.zip
+echo "2/2: Unpacking backup..."
+echo "PROCESS: unpack-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cd $TEMP
+unzip -qq backup.zip
+echo "Debs are unpacked at: " $PKGLOC

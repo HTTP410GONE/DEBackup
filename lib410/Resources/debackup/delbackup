@@ -1,0 +1,31 @@
+#!/bin/sh
+# DEBackup Tool script
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to delete a backup."
+echo "!!!YOU CANNOT UNDO THIS ACTION!!!"
+echo "Please be careful deleting a backup."
+echo "======================================"
+echo "What backup do you want to delete?"
+cd $PERMASTORE
+ls
+read backupSelection
+echo "======================================"
+echo "ARE YOU SURE YOU WANT TO DELETE THE BACKUP?:"
+echo $backupSelection
+echo "Please type YES (all capital) to continue."
+echo "======================================"
+echo "PROCESS: deleteBackup-confirm / BACKUP_NAME: "$backupSelection > $INPROGRESS
+read confirm
+if [ $confirm == "YES" ]; then
+	echo "1/1: Deleting..."
+	echo "PROCESS: deleteBackup-delete / BACKUP_NAME: "$backupSelection > $INPROGRESS
+	rm $backupSelection
+else
+	echo "Aborted."
+fi
+echo "Done."

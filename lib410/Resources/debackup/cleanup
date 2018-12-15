@@ -1,0 +1,7 @@
+#!/bin/bash
+# DEBackup Tool script
+TEMP=$(</lib410/Resources/debackup/temp)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+echo "PROCESS: clean-temporary" > $INPROGRESS
+rm -r $TEMP
+mkdir $TEMP

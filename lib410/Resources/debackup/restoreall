@@ -1,0 +1,54 @@
+#!/bin/sh
+# DEBackup Tool script
+DEBUG="Release "
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to restore from a backup."
+echo "It may take very long, and it depends"
+echo "the contents of the backup and the"
+echo "speed of your device."
+echo "======================================"
+echo "What backup do you want to restore? (Type the backup name only.)"
+cd $PERMASTORE
+ls *.mbk
+read backupSelection
+echo "1/9: Copying files to temporary directory..."
+echo "PROCESS: restoreMasterBackup-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cp "BACKUP_"$backupSelection".mbk" $TEMP
+mv $TEMP/"BACKUP_"$backupSelection".mbk" $TEMP/backup.zip
+echo "2/9: Unpacking backup..."
+echo "PROCESS: restoreMasterBackup-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
+sleep 2
+cd $TEMP
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Currently Working:" $(pwd)
+fi
+unzip -qq backup.zip
+cd $TEMP
+cd Contents
+mv *.dbk debian.zip
+mv *.pbk pref.zip
+echo "3/9: Unpacking preferences..."
+unzip -qq pref.zip
+echo "4/9: Overwriting preferece files..."
+cd prefereces/Preferences
+cp * /private/var/mobile/Library/Preferences
+echo "5/9: Cleaning up preference files..."
+cd ..
+rm -r preferences
+echo "6/9: Unpacking Deb backups..."
+unzip -qq debian.zip
+cd temp
+echo "7/9: Installing packages with DPKG..."
+dpkg -i *.deb >&- 2>&-
+echo "8/9: Cleaning up deb files..."
+cd ..
+rm -r temp
+echo "9/9: Cleaning up temporary space..."
+cd $MASTERPATH
+$BINDIR"cleanup"
+echo "Done."

@@ -1,0 +1,89 @@
+#!/bin/sh
+# DEBackup Tool script
+DEBUG="Release "
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to backup all the debs"
+echo "and preference files."
+echo "It may take very long, and it depends"
+echo "the number of debs installed and the "
+echo "speed of your device."
+echo "======================================"
+echo "What will the backup name be?"
+read backupname
+echo "1/10: Cleaning workspace..."
+echo "PROCESS: backupFull-initcleanup / BACKUP_NAME: "$backupname > $INPROGRESS
+$BINDIR"cleanup"
+echo "PROCESS: backupFull-getlist / BACKUP_NAME: "$backupname > $INPROGRESS
+echo "2/10: Accessing dpkg to get the list..."
+total=$(dpkg --get-selections | awk '{print $1}'|grep -v gsc|grep -v "^cy+" | wc -l)
+echo " Found " $total " debs to backup."
+echo "3/10: Extract to DEB"
+echo "PROCESS: backupFull-extraction / BACKUP_NAME: "$backupname > $INPROGRESS
+for ((i=0; i<total; i++)) do
+	( echo y
+	echo $i
+	 ) | $BINDIR"extractionTool" >&- 2>&-
+	echo " Extraction: "$i"/"$total
+done
+echo " Extraction: "$total"/"$total
+cd $TEMP
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Backed up list:"
+	ls
+fi
+echo "4/10: Removing Stock Packages from backup..."
+echo "PROCESS: backupFull-eraseStockPackages / BACKUP_NAME: "$backupname > $INPROGRESS
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Currently Working:" $(pwd)
+	echo "  Erase list: com.ex.substitute, apt7, apt7-key, apt7-lib, base, bash, bzip2, coreutils, coreutils-lib, cydia, {All saurik packages}"
+fi
+rm com.ex.substitute*
+rm apt7*
+rm base*
+rm bash*
+rm bzip2*
+rm coreutils*
+rm cydia*
+rm com.saurik*
+cd $MASTERPATH
+echo "5/10: Archiving..."
+echo "PROCESS: backupFull-archive / BACKUP_NAME: "$backupname > $INPROGRESS
+sleep 2
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Currently Working:" $(pwd)
+fi
+zip -rqq $backupname_debs.zip temp
+mv $backupname_debs.zip $backupname_debs.dbk
+if [ ! -e $TEMP/preferences ]; then
+	mkdir $TEMP/preferences
+fi
+echo "6/10: Copying preference files..."
+cp -r /private/var/mobile/Library/Preferences $TEMP/preferences
+echo "PROCESS: backupPrefOnly-filterApplePreferenceFiles / BACKUP_NAME: "$backupname > $INPROGRESS
+echo "7/10: Filtering..."
+cd $TEMP/preferences
+cd Preferences
+rm com.apple.*
+echo "PROCESS: backupPrefOnly-compress / BACKUP_NAME: "$backupname > $INPROGRESS
+cd $TEMP
+echo "8/10: Archiving..."
+zip -rqq $backupname"_prefs.zip" preferences
+echo "9/10: Binding..."
+echo "PROCESS: backupFull-bind / BACKUP_NAME: "$backupname > $INPROGRESS
+if [ ! -e Contents ]; then
+	mkdir Contents
+fi
+mv $backupname"_prefs.zip" "Contents/"$backupname"_prefs.pbk"
+cd $MASTERPATH
+mv $backupname"_debs.dbk" "./temp/Contents/"$backupname"_debs.dbk"
+zip -rqq BACKUP_$backupname.zip Contents
+mv BACKUP_$backupname.zip BACKUP_$backupname.mbk
+mv BACKUP_$backupname.mbk $PERMASTORE/BACKUP_$backupname.mbk
+echo "10/10: Cleaing up..."
+echo "PROCESS: backupFull-cleanup / BACKUP_NAME: "$backupname > $INPROGRESS
+echo "Done."

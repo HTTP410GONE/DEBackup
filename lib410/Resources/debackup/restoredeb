@@ -1,0 +1,45 @@
+#!/bin/sh
+# DEBackup Tool script
+DEBUG="Release "
+TEMP=$(</lib410/Resources/debackup/temp)
+MASTERPATH=$(</lib410/Resources/debackup/master)
+PERMASTORE=$(</lib410/Resources/debackup/perma)
+INPROGRESS=$(</lib410/Resources/debackup/inprogress)
+BINDIR=$(</lib410/Resources/debackup/bindir)
+echo "======================================"
+echo "You are trying to restore from a backup."
+echo "It may take very long, and it depends"
+echo "the contents of the backup and the"
+echo "speed of your device."
+echo "======================================"
+echo "What backup do you want to restore? (Type the backup name only.)"
+cd $PERMASTORE
+ls *.dbk
+read backupSelection
+echo "PROCESS: restoreDebOnly-copyBackupToTemporaryStorage / BACKUP_NAME: "$backupSelection > $INPROGRESS
+cp "BACKUP_"$backupSelection".dbk" $TEMP
+mv $TEMP/"BACKUP_"$backupSelection".dbk" $TEMP/backup.zip
+echo "1/4: Unpacking backup..."
+echo "PROCESS: restoreDebOnly-unpack / BACKUP_NAME: "$backupSelection > $INPROGRESS
+sleep 2
+cd $TEMP
+if [ $DEBUG == "DEBUG_" ]; then
+	echo "Currently Working:" $(pwd)
+fi
+unzip -qq backup.zip
+cd $TEMP
+echo "2/4: Starting installation using DPKG..."
+echo "PROCESS: restoreDebOnly-installUsingDPKG / BACKUP_NAME: "$backupSelection > $INPROGRESS
+sleep 1
+dpkg -i *.deb >&- 2>&-
+echo "3/4: Cleaning up..."
+echo "PROCESS: restoreDebOnly-cleanup / BACKUP_NAME: "$backupSelection > $INPROGRESS
+$BINDIR"cleanup"
+echo "4/4: Running uicache..."
+echo "PROCESS: restoreDebOnly-runUicache / BACKUP_NAME: "$backupSelection > $INPROGRESS
+uicache
+echo "Done."
+echo "SpringBoard will restart in 5 seconds."
+echo "PROCESS: restoreDebOnly-respringtimeout / BACKUP_NAME: "$backupSelection > $INPROGRESS
+sleep 5
+killall SpringBoard
