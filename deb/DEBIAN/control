@@ -1,7 +1,7 @@
 Architecture: iphoneos-arm
 Name: DEBackup
 Package: com.nvtechnology.debackup
-Version: 4100
+Version: 4120
 Author: HTTP410GONE <hysong0129@gmail.com>
 Maintainer: NVTechnology Korea <nvtechkr@gmail.com>
 Depends: firmware (>= 10.0), mobilesubstrate, gawk, com.nvtechnology.libuilder

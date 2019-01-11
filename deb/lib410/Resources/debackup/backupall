@@ -68,7 +68,7 @@ echo "PROCESS: backupPrefOnly-filterApplePreferenceFiles / BACKUP_NAME: "$backup
 echo "7/10: Filtering..."
 cd $TEMP/preferences
 cd Preferences
-rm com.apple.*
+rm "com.apple."*
 echo "PROCESS: backupPrefOnly-compress / BACKUP_NAME: "$backupname > $INPROGRESS
 cd $TEMP
 echo "8/10: Archiving..."

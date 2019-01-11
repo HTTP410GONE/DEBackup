@@ -36,6 +36,7 @@ if [ $1 == "-help" ]; then
     echo "-8: Clear temporary storage"
     echo "-9: Unpack backup"
     echo "-10: Delete backup"
+    echo "--graphic: Use progress bar instead of percentage"
 elif [ $1 == "-1" ]; then
     if [ $2 == "-enable" ]; then
         rm $PREFDIR"debianBackup"
@@ -152,6 +153,18 @@ elif [ $1 == "-10" ]; then
     elif [ $2 == "-disable" ]; then
         rm $PREFDIR"deleteBackup"
         echo "disable" > $PREFDIR"deleteBackup"
+        echo "Policy changed."
+    else
+        echo "Only -enable or -disable!"
+    fi
+elif [ $1 == "--graphic" ]; then
+    if [ $2 == "-enable" ]; then
+        rm $PREFDIR"useGraphicalProgressBar"
+        echo "enable" > $PREFDIR"useGraphicalProgressBar"
+        echo "Policy changed."
+    elif [ $2 == "-disable" ]; then
+        rm $PREFDIR"useGraphicalProgressBar"
+        echo "disable" > $PREFDIR"useGraphicalProgressBar"
         echo "Policy changed."
     else
         echo "Only -enable or -disable!"
